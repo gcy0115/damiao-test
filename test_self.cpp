@@ -18,46 +18,14 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include "include/can_opration.hpp"
+#include "include/dm4310.hpp"
+
 
 
 // #define ip_cmd_set_can0_params "sudo ip link set can0 type can bitrate 1000000"
 // #define ip_cmd_can0_up         "sudo ifconfig can0 up"
 // #define ip_cmd_can0_down       "sudo ifconfig can0 down"
-
-
-void initial_can(std::string& can_name){
-    const std::string cmd1 = "sudo ip link set " + can_name + " type can bitrate 1000000";
-    const std::string cmd2 = "sudo ifconfig " + can_name + " up";
-    const std::string cmd3 = "sudo ifconfig " + can_name + " down";
-    //generate comands for can;
-
-    const char* ip_cmd_set_can_params = cmd1.c_str();
-    const char* ip_cmd_can_up = cmd2.c_str();
-    const char* ip_cmd_can_down = cmd3.c_str();
-    // string2char*
-
-    system(ip_cmd_can_down); // shut down the possibly running can
-    int CAN_ready = system(ip_cmd_set_can_params); // 设置参数   
-    CAN_ready += system(ip_cmd_can_up);  // 开启can0接口
-    // std::cout << "Output:" << CAN_ready << std::endl;
-
-    // system(ip_cmd_can0_down);
-
-    if (CAN_ready != 0) {
-        std::cerr << "can0 failed to open" << std::endl;
-
-    }
-    else{
-        std::cout << "can0 successfully opened" << std::endl;
-    }
-}
-
-void terminate_can(std::string& can_name){
-    const std::string cmd3 = "sudo ifconfig " + can_name + " down";
-    const char* ip_cmd_can_down = cmd3.c_str();
-    system(ip_cmd_can_down);
-    std::cout << "can0 shutting down." << std::endl;
-}
 
 int main(){
 
@@ -99,6 +67,7 @@ int main(){
     // SocketCAN 的套接字可以复用，即：
     // 一旦套接字被成功创建并绑定到指定的 CAN 接口上，你可以通过 write 函数不断向套接字发送新的 CAN 帧数据，而无需重新打开或绑定套接字。
     // 只需在 can_frame 结构体中更新 can_id 和 data，然后调用 write 函数即可将新的数据发送到 CAN 总线上。
+
     // 准备 CAN 帧数据
     struct can_frame frame;
     frame.can_id = 0x123;  // 设置 CAN ID

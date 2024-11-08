@@ -44,7 +44,16 @@ private:
     float T;               // 电机的扭矩信息
     float T_MOS;           // 驱动器温度
     float T_Rotor;         // 电机线圈温度
-    int ERR;               // 状态信息，范围 0 到 E
+    int ERR;               // 状态信息，0——失能；
+                                // 1——使能；
+                                // 8——超压；
+                                // 9——欠压；
+                                // A——过电流；
+                                // B——MOS过温；
+                                // C——电机线圈过温；
+                                // D——通讯丢失；
+                                // E——过载；
+                                
     public:
     // 构造函数，初始化各个参数
     Motor(int id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,

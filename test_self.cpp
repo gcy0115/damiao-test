@@ -1,4 +1,9 @@
 // test socket CAN via cpp
+
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+#include <cstdint>
 #include <linux/can.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -82,7 +87,7 @@ int main(){
     frame.data[7] = 0x08;
 
     // 发送 CAN 帧
-    // write(sock, &frame, sizeof(frame)
+    // write(sock, &frame, sizeof(frame))
     // 使用 write 函数通过套接字 sock 发送 CAN 帧。
     // sock 是一个已经连接并绑定到 CAN 接口的套接字。
     // &frame 是一个指向 can_frame 结构体的指针，代表需要发送的 CAN 帧。

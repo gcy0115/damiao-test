@@ -2,6 +2,25 @@
 #include <stdexcept>
 #include <vector>
 #include <cstdint>
+#include <linux/can.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <linux/can/raw.h>
+#include <unistd.h>
+#include <cstdlib>  // stdlib.h
+#include <iostream>
+
+#include <cstring>
+#include <cerrno>
+
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+
 
 
 float uint_to_float(int x_int, float x_min, float x_max, int bits){
@@ -36,7 +55,7 @@ int float_to_uint(float x,float x_min, float x_max, int bits){
 
 class Motor {
 private:
-    int ID;                // 电机的 CAN ID
+    char ID;                // 电机的 CAN ID
     float p_des;           // 期望位置
     float v_des;           // 期望速度
     float Kp;              // 位置比例系数
@@ -60,7 +79,7 @@ private:
 
     public:
     // 构造函数，初始化各个参数
-    Motor(int id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,
+    Motor(char id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,
           float pos = 0.0f, float vel = 0.0f, float t = 0.0f, float t_mos = 0.0f, float t_rotor = 0.0f, int err = 0)
         : ID(id), p_des(p_des), v_des(v_des), Kp(kp), Kd(kd), T_ff(t_ff),
           POS(pos), VEL(vel), T(t), T_MOS(t_mos), T_Rotor(t_rotor), ERR(err) {}
@@ -140,8 +159,8 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
     MotorFeedback feedback;
 
     // 第1位：低 8 位为电机 ID，高 8 位为 ERR 信息
-    feedback.motorID = data[0] & 0x0F;  // 提取低 4 位的电机 ID
-    feedback.ERR = data[0] >> 4;        // 提取ERR 信息
+    feedback.motorID = data[0] >> 4;  // 提取high 4 位的电机 ID
+    feedback.ERR = data[0] & 0x0F;        // 提取ERR 信息
 
     // 第2、3位：POS 高 8 位和低 8 位，总长 16 位
     feedback.POS = (data[1] << 8) | data[2];
@@ -184,3 +203,22 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
 
 //     return 0;
 // }
+
+// enable motor
+void enable_motor(int sock, char motor_id){
+
+    struct can_frame enable_frame;
+        enable_frame.can_id = motor_id;  // 设置 CAN ID
+        enable_frame.can_dlc = 8;     // 数据长度（0-8）
+        enable_frame.data[0] = 0xFF;  // 填充数据
+        enable_frame.data[1] = 0xFF;
+        enable_frame.data[2] = 0xFF;
+        enable_frame.data[3] = 0xFF;
+        enable_frame.data[4] = 0xFF;
+        enable_frame.data[5] = 0xFF;
+        enable_frame.data[6] = 0xFF;
+        enable_frame.data[7] = 0xFF;
+
+        write(sock, &enable_frame, sizeof(enable_frame));
+
+}

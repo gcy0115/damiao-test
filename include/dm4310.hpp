@@ -53,9 +53,10 @@ int float_to_uint(float x,float x_min, float x_max, int bits){
 //     __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_FMP0);
 // }
 
-class Motor {
+class dmMotor {
 private:
-    char ID;                // 电机的 CAN ID
+    int ID;                // 电机的 CAN ID
+    int master_ID;
     float p_des;           // 期望位置
     float v_des;           // 期望速度
     float Kp;              // 位置比例系数
@@ -79,14 +80,17 @@ private:
 
     public:
     // 构造函数，初始化各个参数
-    Motor(char id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,
+    dmMotor(int id, int master_id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,
           float pos = 0.0f, float vel = 0.0f, float t = 0.0f, float t_mos = 0.0f, float t_rotor = 0.0f, int err = 0)
-        : ID(id), p_des(p_des), v_des(v_des), Kp(kp), Kd(kd), T_ff(t_ff),
+        : ID(id), master_ID(master_id), p_des(p_des), v_des(v_des), Kp(kp), Kd(kd), T_ff(t_ff),
           POS(pos), VEL(vel), T(t), T_MOS(t_mos), T_Rotor(t_rotor), ERR(err) {}
 
     // Getter 和 Setter 方法
     int getID() const { return ID; }
     void setID(int id) { ID = id; }
+
+    int getMasterID() const { return master_ID; }
+    void setMasterID(int master_id) { master_ID = master_id; }
 
     float getPDes() const { return p_des; }
     void setPDes(float p) { p_des = p; }
@@ -104,16 +108,19 @@ private:
     void setTFF(float t_ff) { T_ff = t_ff; }
 
     float getPOS() const { return POS; }
+    void setPOS(float pos) { POS = pos; }
 
     float getVEL() const { return VEL; }
+    void setVEL(float vel) { VEL = vel; }
 
     float getT() const { return T; }
+    void setT(float t) { T = t; }
 
     float getTMOS() const { return T_MOS; }
+    void setTMOS(float t_mos) { T_MOS = t_mos; }
 
     float getTRotor() const { return T_Rotor; }
-
-    int getERR() const { return ERR; }
+    void setTRotor(float t_rotor) { T_Rotor = t_rotor; }
     
 };
 
@@ -218,6 +225,50 @@ int enable_motor(int sock, int motor_id){
         enable_frame.data[5] = 0xFF;
         enable_frame.data[6] = 0xFF;
         enable_frame.data[7] = 0xFC;
+
+        write(sock, &enable_frame, sizeof(enable_frame));
+        std::cout << "Enable motor " << motor_id << ": " << std::endl;
+
+    return 0;
+
+}
+
+// enable motor
+int disable_motor(int sock, int motor_id){
+
+    struct can_frame enable_frame;
+        enable_frame.can_id = motor_id;  // 设置 CAN ID
+        enable_frame.can_dlc = 8;     // 数据长度（0-8）
+        enable_frame.data[0] = 0xFF;  // 填充数据
+        enable_frame.data[1] = 0xFF;
+        enable_frame.data[2] = 0xFF;
+        enable_frame.data[3] = 0xFF;
+        enable_frame.data[4] = 0xFF;
+        enable_frame.data[5] = 0xFF;
+        enable_frame.data[6] = 0xFF;
+        enable_frame.data[7] = 0xFD;
+
+        write(sock, &enable_frame, sizeof(enable_frame));
+        std::cout << "disable motor " << motor_id << ": " << std::endl;
+
+    return 0;
+
+}
+
+// set current postion as zero point
+int setzero_motor(int sock, int motor_id){
+
+    struct can_frame enable_frame;
+        enable_frame.can_id = motor_id;  // 设置 CAN ID
+        enable_frame.can_dlc = 8;     // 数据长度（0-8）
+        enable_frame.data[0] = 0xFF;  // 填充数据
+        enable_frame.data[1] = 0xFF;
+        enable_frame.data[2] = 0xFF;
+        enable_frame.data[3] = 0xFF;
+        enable_frame.data[4] = 0xFF;
+        enable_frame.data[5] = 0xFF;
+        enable_frame.data[6] = 0xFF;
+        enable_frame.data[7] = 0xFE;
 
         write(sock, &enable_frame, sizeof(enable_frame));
 

@@ -26,46 +26,17 @@
 #include "include/can_opration.hpp"
 #include "include/dm4310.hpp"
 
-
-
-// #define ip_cmd_set_can0_params "sudo ip link set can0 type can bitrate 1000000"
-// #define ip_cmd_can0_up         "sudo ifconfig can0 up"
-// #define ip_cmd_can0_down       "sudo ifconfig can0 down"
-
 int main(){
 
-    std::string can0 = "can0";
-    initial_can(can0);
 
-    // Opening a socket, CAN type.
-    // PF_CAN：指定使用 CAN 协议族。
-    // SOCK_RAW：设置为原始套接字，以便直接访问 CAN 帧数据。
-    // CAN_RAW：使用原始 CAN 协议，用于标准的 CAN 帧通信。
+    const char* can_interface = "can0";  // CAN 接口名称
+    std::string can_id = "can0";
+    initial_can(can_id);
 
-
-    int sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    int target_id = 0x123;               // 目标 CAN ID
+    
+    int sock = openCANSocket(can_interface);
     if (sock < 0) {
-        std::cerr << "Error while opening socket: " << strerror(errno) << std::endl;
-        return -1;
-    }
-
-    // 指定 CAN 接口
-    struct ifreq ifr;
-    std::strcpy(ifr.ifr_name, "can0");  // 使用 can0 作为 CAN 接口
-    if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0) {
-        std::cerr << "Error: could not locate CAN interface" << std::endl;
-        close(sock);
-        return -1;
-    }
-
-    // 绑定套接字到 CAN 接口
-    struct sockaddr_can addr;
-    std::memset(&addr, 0, sizeof(addr));
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
-    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        std::cerr << "Error in socket bind: " << strerror(errno) << std::endl;
-        close(sock);
         return -1;
     }
     
@@ -104,8 +75,11 @@ int main(){
 
     std::cout << "CAN frame sent successfully!" << std::endl;
 
+    int motor1 = 0x201;
+    enable_motor(sock, motor1);
+
     // 关闭套接字
     close(sock);
-    terminate_can(can0);
+    terminate_can(can_id);
     return 0;
 }

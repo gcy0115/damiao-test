@@ -205,7 +205,7 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
 // }
 
 // enable motor
-void enable_motor(int sock, char motor_id){
+int enable_motor(int sock, int motor_id){
 
     struct can_frame enable_frame;
         enable_frame.can_id = motor_id;  // 设置 CAN ID
@@ -217,8 +217,10 @@ void enable_motor(int sock, char motor_id){
         enable_frame.data[4] = 0xFF;
         enable_frame.data[5] = 0xFF;
         enable_frame.data[6] = 0xFF;
-        enable_frame.data[7] = 0xFF;
+        enable_frame.data[7] = 0xFC;
 
         write(sock, &enable_frame, sizeof(enable_frame));
+
+    return 0;
 
 }

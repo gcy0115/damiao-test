@@ -271,6 +271,7 @@ int setzero_motor(int sock, int motor_id){
         enable_frame.data[7] = 0xFE;
 
         write(sock, &enable_frame, sizeof(enable_frame));
+        std::cout << "disable motor " << motor_id << ": " << std::endl;
 
     return 0;
 

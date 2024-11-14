@@ -21,6 +21,9 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+const float Pos_min = -12.5, Pos_max = 12.5;
+const float Vel_min = -45.0, Vel_max = 45.0;
+const float Tor_min = -18.0, Tor_max = 18.0;
 
 
 float uint_to_float(int x_int, float x_min, float x_max, int bits){
@@ -152,9 +155,9 @@ private:
 struct MotorFeedback {
     int motorID;      // 电机 ID
     int ERR;          // 错误信息
-    int POS;          // 16 位实际位置
-    int VEL;          // 12 位实际速度
-    int T;            // 12 位扭矩
+    float POS;          // 16 位实际位置
+    float VEL;          // 12 位实际速度
+    float T;            // 12 位扭矩
     uint8_t T_MOS;    // 8 位驱动器温度
     uint8_t T_Rotor;  // 8 位电机线圈温度
 };
@@ -165,18 +168,20 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
 
     MotorFeedback feedback;
 
-    // 第1位：低 8 位为电机 ID，高 8 位为 ERR 信息
-    feedback.motorID = data[0] >> 4;  // 提取high 4 位的电机 ID
-    feedback.ERR = data[0] & 0x0F;        // 提取ERR 信息
+    // 第1位：低 4 位为电机 ID，高 4 位为 ERR 信息ERR
+
+    feedback.motorID = data[0] & 0x0F;        // 提取ID 信息
+    feedback.ERR = data[0] >> 4;  // 提取high 4 位的电机 ERR
 
     // 第2、3位：POS 高 8 位和低 8 位，总长 16 位
-    feedback.POS = (data[1] << 8) | data[2];
+    // feedback.POS = (data[1] << 8) | data[2];
+    feedback.POS = uint_to_float((data[1] << 8) | data[2], Pos_min, Pos_max, 16);
 
     // 第4、5位：VEL 的高 8 位和低 4 位，总长 12 位
-    feedback.VEL = (data[3] << 4) | (data[4] >> 4);
+    feedback.VEL = uint_to_float((data[3] << 4) | (data[4] >> 4), Vel_min, Vel_max, 12);
 
     // 第5位（低 4 位）和第6位：T 的高 4 位和低 8 位，总长 12 位
-    feedback.T = ((data[4] & 0x0F) << 8) | data[5];
+    feedback.T = uint_to_float(((data[4] & 0x0F) << 8) | data[5], Tor_min, Tor_max, 12);
 
     // 第7位：T_MOS（8 位）
     feedback.T_MOS = data[6];

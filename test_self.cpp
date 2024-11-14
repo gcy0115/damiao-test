@@ -25,9 +25,9 @@
 void sendThread(int sock, int motor_id) {
     while (true) {
         enable_motor(sock, motor_id);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 控制发送频率
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // 控制发送频率
         disable_motor(sock, motor_id);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
 }
 

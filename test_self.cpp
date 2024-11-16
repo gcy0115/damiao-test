@@ -67,7 +67,7 @@ int main(){
     // 只需在 can_frame 结构体中更新 can_id 和 data，然后调用 write 函数即可将新的数据发送到 CAN 总线上。
 
     // 实例化一个dmMotor对象，使用ID和masterID初始化变量 
-    dmMotor motorFR(0x002, 0x000);
+    dmMotor motorFR(0x002, 0x102);
 
     // starting receving
     std::thread receiver(receiveThread, sock, motorFR.getMasterID());

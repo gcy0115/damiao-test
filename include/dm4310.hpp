@@ -22,7 +22,7 @@
 #include <sys/ioctl.h>
 
 const float Pos_min = -12.5, Pos_max = 12.5;
-const float Vel_min = -45.0, Vel_max = 45.0;
+const float Vel_min = -30.0, Vel_max = 30.0;
 const float Tor_min = -18.0, Tor_max = 18.0;
 
 
@@ -176,6 +176,7 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
     // 第2、3位：POS 高 8 位和低 8 位，总长 16 位
     // feedback.POS = (data[1] << 8) | data[2];
     feedback.POS = uint_to_float((data[1] << 8) | data[2], Pos_min, Pos_max, 16);
+    std::cout << "POS_Raw: " << ((data[1] << 8) | data[2]) << std::endl;
 
     // 第4、5位：VEL 的高 8 位和低 4 位，总长 12 位
     feedback.VEL = uint_to_float((data[3] << 4) | (data[4] >> 4), Vel_min, Vel_max, 12);

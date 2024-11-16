@@ -7,10 +7,9 @@
 #include <unistd.h>
 #include <cstdlib>  // stdlib.h
 #include <iostream>
-
+#include <vector>
 #include <cstring>
 #include <cerrno>
-
 #include <sys/socket.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -53,6 +52,7 @@ int openCANSocket(const char* interface) {
     return sock;
 }
 
+// can使能，设定波特率，并上拉can。这里使用candlelight can，可使用ifconfig -a查看can设备信息
 void initial_can(std::string& can_name){
     const std::string cmd1 = "sudo ip link set " + can_name + " type can bitrate 1000000";
     const std::string cmd2 = "sudo ifconfig " + can_name + " up";
@@ -72,11 +72,11 @@ void initial_can(std::string& can_name){
     // system(ip_cmd_can0_down);
 
     if (CAN_ready != 0) {
-        std::cerr << "can0 failed to open" << std::endl;
+        std::cerr << "can0 failed to open." << std::endl;
 
     }
     else{
-        std::cout << "can0 successfully opened" << std::endl;
+        std::cout << "can0 successfully opened." << std::endl;
     }
 }
 

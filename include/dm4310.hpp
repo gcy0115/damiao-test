@@ -68,8 +68,8 @@ private:
     float POS;             // 实际位置
     float VEL;             // 实际速度
     float T;               // 电机的扭矩信息
-    float T_MOS;           // 驱动器温度
-    float T_Rotor;         // 电机线圈温度
+    int T_MOS;             // 驱动器温度
+    int T_Rotor;           // 电机线圈温度
     int ERR;               // 状态信息，
                                 // 0——失能；
                                 // 1——使能；
@@ -83,8 +83,9 @@ private:
 
     public:
     // 构造函数，初始化各个参数
+    // 初始化电机时，应直接给定其ID和masterID
     dmMotor(int id, int master_id, float p_des = 0.0f, float v_des = 0.0f, float kp = 0.0f, float kd = 0.0f, float t_ff = 0.0f,
-          float pos = 0.0f, float vel = 0.0f, float t = 0.0f, float t_mos = 0.0f, float t_rotor = 0.0f, int err = 0)
+          float pos = 0.0f, float vel = 0.0f, float t = 0.0f, int t_mos = 0, int t_rotor = 0, int err = 0)
         : ID(id), master_ID(master_id), p_des(p_des), v_des(v_des), Kp(kp), Kd(kd), T_ff(t_ff),
           POS(pos), VEL(vel), T(t), T_MOS(t_mos), T_Rotor(t_rotor), ERR(err) {}
 
@@ -116,14 +117,17 @@ private:
     float getVEL() const { return VEL; }
     void setVEL(float vel) { VEL = vel; }
 
-    float getT() const { return T; }
-    void setT(float t) { T = t; }
+    int getT() const { return T; }
+    void setT(int t) { T = t; }
 
-    float getTMOS() const { return T_MOS; }
-    void setTMOS(float t_mos) { T_MOS = t_mos; }
+    int getTMOS() const { return T_MOS; }
+    void setTMOS(int t_mos) { T_MOS = t_mos; }
 
     float getTRotor() const { return T_Rotor; }
     void setTRotor(float t_rotor) { T_Rotor = t_rotor; }
+
+    int getERR() const { return ERR; }
+    void setERR(int err) { ERR = err; }
     
 };
 

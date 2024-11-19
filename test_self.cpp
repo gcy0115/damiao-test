@@ -9,9 +9,9 @@
 void sendThread(int sock, dmMotor motor) {
     while (true) {
         enable_motor(sock, motor.getID());
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // 控制发送频率
-        disable_motor(sock, motor.getID());
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2)); // 控制发送频率
+        // disable_motor(sock, motor.getID());
+        // std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 }
 
@@ -29,7 +29,7 @@ void receiveThread(int sock, dmMotor motor) {
             motor.setT(feedback.T);
             motor.setTMOS(feedback.T_MOS);
             motor.setTRotor(feedback.T_Rotor);
-            std::cout << "Motor ID: " << feedback.motorID << std::endl;
+            // std::cout << "Received from Motor: " << feedback.motorID << std::endl;
             // std::cout << "ERR: " << feedback.ERR << std::endl;
             // std::cout << "POS: " << feedback.POS << std::endl;
             // std::cout << "VEL: " << feedback.VEL << std::endl;

@@ -156,6 +156,13 @@ private:
 // 解析 CAN 总线上的反馈信息
 
 
+struct MITControlFrame
+{
+    /* data */
+    
+};
+
+
 struct MotorFeedback {
     int motorID;      // 电机 ID
     int ERR;          // 错误信息
@@ -181,6 +188,7 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
     // feedback.POS = (data[1] << 8) | data[2];
     feedback.POS = uint_to_float((data[1] << 8) | data[2], Pos_min, Pos_max, 16);
     std::cout << "POS_Raw: " << ((data[1] << 8) | data[2]) << std::endl;
+    std::cout << "POS_2_f: " << feedback.POS << std::endl;
 
     // 第4、5位：VEL 的高 8 位和低 4 位，总长 12 位
     feedback.VEL = uint_to_float((data[3] << 4) | (data[4] >> 4), Vel_min, Vel_max, 12);
@@ -237,7 +245,7 @@ int enable_motor(int sock, int motor_id){
         enable_frame.data[7] = 0xFC;
 
         write(sock, &enable_frame, sizeof(enable_frame));
-        std::cout << "Enable motor " << motor_id << ": " << std::endl;
+        // std::cout << "Enable motor " << motor_id << ": " << std::endl;
 
     return 0;
 
@@ -259,7 +267,7 @@ int disable_motor(int sock, int motor_id){
         enable_frame.data[7] = 0xFD;
 
         write(sock, &enable_frame, sizeof(enable_frame));
-        std::cout << "disable motor " << motor_id << ": " << std::endl;
+        // std::cout << "disable motor " << motor_id << ": " << std::endl;
 
     return 0;
 
@@ -281,7 +289,7 @@ int setzero_motor(int sock, int motor_id){
         enable_frame.data[7] = 0xFE;
 
         write(sock, &enable_frame, sizeof(enable_frame));
-        std::cout << "disable motor " << motor_id << ": " << std::endl;
+        // std::cout << "Send zero " << motor_id << ": " << std::endl;
 
     return 0;
 

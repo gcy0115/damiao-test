@@ -1,4 +1,4 @@
-# damiao-linux下速度位置模式
+# damiao-linux下速度位置模式控制思路与介绍
 
 ## 1. 通讯设置
 4310电机使用can通讯，串口部分用于连接上位机调试。上位机仅在windows平台上使用。详细的连接和调试说明，参考[使用说明书](调试助手使用说明书（达妙驱动控制协议）V1.4.pdf)。
@@ -33,6 +33,7 @@ sudo ifconfig can0 down  #停用can0
 可开启另一个终端使用`candump`命令监听发送的指令是否被接收：
 ```shell
 candump can0
+
     can0  123   [8]  11 22 33 44 55 66 77 88  #应收到的内容
 ```
 
@@ -48,6 +49,48 @@ candump can0
 2. **控制线程**: 用于发送控制帧，需要维持一定的控制频率，过高可能导致can负载过大，我这里单电机可运行在1000hz，更多电机时需要适当降低控制频率或增加多路can；
 3. **订阅线程**: 用于接收外界指令，并传递给控制线程。目前订阅来自键盘的输入，后续可加上ROS订阅节点。
 
+### 2.0 初始化收发状态
+主要需要对can接口进行设置，主要函数参见[can_opration.hpp](include/can_opration.hpp)。参考通讯设置中需要在终端中的操作命令，我们使用`system`函数在代码中执行该命令。实际操作中，使用如下代码即可完成通讯部分的设置：
+```cpp
+std::string can_id = "can0";  //指定can口
+initial_can(can_id);  //完成can0的波特率、上拉设置
+int sock = openCANSocket(can_id.c_str());  //初始化一个socket网络，设置为can样式，并绑定到can0上
+```
+需要时，可以使用以下代码下拉can，或用于重新启动can口时的前置操作，避免出现`device busy`样式的报错：
+```cpp
+terminate_can(can_id);
+```
+
+
+### 2.1 接收线程
+接收线程主要需
+
+
+---
+# TODO
+1. 设置can状态时，需要`sudo`权限，导致每次需要在命令行中输入密码才能继续执行脚本，可以参考如下方案：
+
+方法 2：使用 sudo 与 -S 参数
+另一个方法是通过 sudo 的 -S 选项来传递密码给 sudo，使得在执行命令时不要求手动输入密码。然而，这种方法通常不推荐，因为你必须将密码硬编码到程序中，这样会带来安全隐患。为了演示，这里是一个如何用 -S 选项在程序中传递密码的例子：
+
+```cpp
+复制代码
+#include <iostream>
+#include <cstdlib>
+
+int main() {
+    const char* command = "echo 'your_password' | sudo -S /path/to/your_command";
+    system(command);
+    return 0;
+}
+```
+echo 'your_password'：模拟输入密码。
+sudo -S：-S 选项允许 sudo 从标准输入读取密码。
+|：通过管道将密码传递给 sudo。
+警告：将密码硬编码到程序中是非常不安全的，这样做容易导致密码泄露。强烈建议使用第一种方法（修改 sudoers 文件），以确保安全性。
+
+2. ROS2下数据的收发
+考虑订阅来自`controller`的电机转角信息，并广播电机状态信息。
 
 
 

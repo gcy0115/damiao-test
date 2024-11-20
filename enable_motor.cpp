@@ -19,10 +19,16 @@ int main(){
     }
 
     // 实例化一个dmMotor对象，使用ID和masterID初始化变量 
-    dmMotor motorFR(0x102, 0x22);
+    dmMotor motorFR(0x102, 0x022);
 
     // starting sending
-    disable_motor(sock, motorFR.getID());
+    while (true)
+    {
+        enable_motor(sock, motorFR.getID());
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 控制发送频率
+    }
+    
+    
 
 
     terminate_can(can_id);

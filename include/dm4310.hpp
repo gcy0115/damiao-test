@@ -164,7 +164,7 @@ int PosControlFrame(int sock, int motor_id, float p_des, float v_des) {
 
     // 填充 CAN 帧
     struct can_frame pos_control_frame;
-    pos_control_frame.can_id = motor_id + 0x100;  // 添加基础 ID 偏移
+    pos_control_frame.can_id = motor_id;  // 添加基础 ID 偏移
     pos_control_frame.can_dlc = 8;               // 数据长度（固定为 8 字节）
     pos_control_frame.data[0] = pbuf[0];         // 填充 p_des 数据
     pos_control_frame.data[1] = pbuf[1];
@@ -177,6 +177,7 @@ int PosControlFrame(int sock, int motor_id, float p_des, float v_des) {
 
     // 发送 CAN 帧
     ssize_t nbytes = write(sock, &pos_control_frame, sizeof(pos_control_frame));
+    // std::cout << "Sending control frame" << std::endl;
     if (nbytes != sizeof(pos_control_frame)) {
         std::cerr << "Error: Failed to send CAN frame (bytes sent: " << nbytes
                   << ", expected: " << sizeof(pos_control_frame) << ")" << std::endl;
@@ -211,8 +212,8 @@ MotorFeedback parseCANFeedback(int can_id, const std::vector<uint8_t>& data) {
     // 第2、3位：POS 高 8 位和低 8 位，总长 16 位
     // feedback.POS = (data[1] << 8) | data[2];
     feedback.POS = uint_to_float((data[1] << 8) | data[2], Pos_min, Pos_max, 16);
-    std::cout << "POS_Raw: " << ((data[1] << 8) | data[2]) << std::endl;
-    std::cout << "POS_2_f: " << feedback.POS << std::endl;
+    // std::cout << "POS_Raw: " << ((data[1] << 8) | data[2]) << std::endl;
+    // std::cout << "POS_2_f: " << feedback.POS << std::endl;
 
     // 第4、5位：VEL 的高 8 位和低 4 位，总长 12 位
     feedback.VEL = uint_to_float((data[3] << 4) | (data[4] >> 4), Vel_min, Vel_max, 12);

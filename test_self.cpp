@@ -1,7 +1,8 @@
 // test socket CAN via cpp
 #include <iostream>
 #include <thread>
-
+#include <atomic>
+#include <mutex>
 #include "include/can_opration.hpp"
 #include "include/dm4310.hpp"
 
@@ -9,13 +10,13 @@
 void sendThread(int sock, dmMotor motor) {
     while (true) {
         enable_motor(sock, motor.getID());
-        std::this_thread::sleep_for(std::chrono::milliseconds(2)); // 控制发送频率
-        // disable_motor(sock, motor.getID());
-        // std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 控制发送频率
+        disable_motor(sock, motor.getID());
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
 
-void receiveThread(int sock, dmMotor motor) {
+auto receiveThread(int sock, dmMotor motor) {
     while (true) {
         std::vector<uint8_t> received_data;
         if (receiveCANFrame(sock, motor.getMasterID(), received_data)) {
@@ -38,6 +39,64 @@ void receiveThread(int sock, dmMotor motor) {
             // std::cout << "Received feedback from motor :" << motor.getMasterID() << std::endl;
         }
     }
+    return motor;
+}
+
+std::atomic<float> target_position_FR(0.0f);
+std::atomic<float> target_velocity(30.0);
+std::mutex mtx;
+
+
+// 线程函数：持续发送控制帧
+void controlLoop(int sock, int motor_id) {
+    std::cout << "Starting control loop" << std::endl;
+    while (true) {
+        float pos, vel;
+        {
+            std::lock_guard<std::mutex> lock(mtx);  // 锁住以防数据竞争
+            pos = target_position_FR.load();  //从全局变量中获取参数
+            vel = target_velocity.load();
+        }
+        // std::cout << "Get:" << pos << "&" << vel << std::endl;
+        PosControlFrame(sock, motor_id, pos, vel);
+
+        // 每隔 1 毫秒发送一次
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+// 用户输入线程函数，后续可改成ros接收线程
+void userInputLoop() {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::cout << "Starting userinput" << std::endl;
+    while (true) {
+        // std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::cout << "Enter a new position (-2.0 to 2.0, or 'q' to quit): ";
+        std::string input;
+        std::cin >> input;
+
+        // 检查退出条件
+        if (input == "q") {
+            std::cout << "Exiting control loop." << std::endl;
+            exit(0);  // 终止整个程序
+        }
+
+        // 尝试将输入转换为浮点数
+        try {
+            float new_position = std::stof(input);
+            if (new_position < -2.0f || new_position > 2.0f) {
+                std::cerr << "Error: Position out of range (-2.0 to 2.0)." << std::endl;
+                continue;
+            }
+
+            // 更新全局变量
+            std::lock_guard<std::mutex> lock(mtx);
+            target_position_FR.store(new_position);
+            std::cout << "Updated position command: " << new_position << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid input. Please enter a float value or 'q' to quit." << std::endl;
+        }
+    }
 }
 
 int main(){
@@ -58,17 +117,26 @@ int main(){
     // 只需在 can_frame 结构体中更新 can_id 和 data，然后调用 write 函数即可将新的数据发送到 CAN 总线上。
 
     // 实例化一个dmMotor对象，使用ID和masterID初始化变量 
-    dmMotor motorFR(0x002, 0x502);
+    dmMotor motorFR(0x102, 0x022);
+    enable_motor(sock, motorFR.getID());
 
     // starting receving
     std::thread receiver(receiveThread, sock, motorFR);
 
     // starting sending
-    std::thread sender(sendThread, sock, motorFR);
+    // std::thread sender(sendThread, sock, motorFR);
+
+    // // 启动控制线程
+    std::thread control_thread(controlLoop, sock, motorFR.getID());
+
+    // // 启动用户输入线程
+    std::thread input_thread(userInputLoop);
 
 
     receiver.join();
-    sender.join();
+    // sender.join();
+    control_thread.join();
+    input_thread.join();
 
 
     terminate_can(can_id);

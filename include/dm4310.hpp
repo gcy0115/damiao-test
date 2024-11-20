@@ -156,11 +156,35 @@ private:
 // 解析 CAN 总线上的反馈信息
 
 
-struct MITControlFrame
-{
-    /* data */
-    
-};
+int PosControlFrame(int sock, int motor_id, float p_des, float v_des) {
+    // 将浮点数指针转为字节指针
+    uint8_t *pbuf, *vbuf;
+    pbuf = reinterpret_cast<uint8_t*>(&p_des);
+    vbuf = reinterpret_cast<uint8_t*>(&v_des);
+
+    // 填充 CAN 帧
+    struct can_frame pos_control_frame;
+    pos_control_frame.can_id = motor_id + 0x100;  // 添加基础 ID 偏移
+    pos_control_frame.can_dlc = 8;               // 数据长度（固定为 8 字节）
+    pos_control_frame.data[0] = pbuf[0];         // 填充 p_des 数据
+    pos_control_frame.data[1] = pbuf[1];
+    pos_control_frame.data[2] = pbuf[2];
+    pos_control_frame.data[3] = pbuf[3];
+    pos_control_frame.data[4] = vbuf[0];         // 填充 v_des 数据
+    pos_control_frame.data[5] = vbuf[1];
+    pos_control_frame.data[6] = vbuf[2];
+    pos_control_frame.data[7] = vbuf[3];
+
+    // 发送 CAN 帧
+    ssize_t nbytes = write(sock, &pos_control_frame, sizeof(pos_control_frame));
+    if (nbytes != sizeof(pos_control_frame)) {
+        std::cerr << "Error: Failed to send CAN frame (bytes sent: " << nbytes
+                  << ", expected: " << sizeof(pos_control_frame) << ")" << std::endl;
+        return -1;  // 返回错误码
+    }
+
+    return 0;  // 成功返回 0
+}
 
 
 struct MotorFeedback {

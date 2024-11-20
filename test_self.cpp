@@ -7,15 +7,6 @@
 #include "include/dm4310.hpp"
 
 
-void sendThread(int sock, dmMotor motor) {
-    while (true) {
-        enable_motor(sock, motor.getID());
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // 控制发送频率
-        disable_motor(sock, motor.getID());
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-}
-
 auto receiveThread(int sock, dmMotor motor) {
     while (true) {
         std::vector<uint8_t> received_data;
@@ -66,7 +57,7 @@ void controlLoop(int sock, int motor_id) {
 }
 
 // 用户输入线程函数，后续可改成ros接收线程
-void userInputLoop() {
+void userInputLoop(int sock, int motor_id) {
     std::this_thread::sleep_for(std::chrono::seconds(3));
     std::cout << "Starting userinput" << std::endl;
     while (true) {
@@ -78,6 +69,7 @@ void userInputLoop() {
         // 检查退出条件
         if (input == "q") {
             std::cout << "Exiting control loop." << std::endl;
+            disable_motor(sock, motor_id);
             exit(0);  // 终止整个程序
         }
 
@@ -130,7 +122,7 @@ int main(){
     std::thread control_thread(controlLoop, sock, motorFR.getID());
 
     // // 启动用户输入线程
-    std::thread input_thread(userInputLoop);
+    std::thread input_thread(userInputLoop, sock, motorFR.getID());
 
 
     receiver.join();

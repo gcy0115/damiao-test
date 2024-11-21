@@ -54,9 +54,9 @@ int openCANSocket(const char* interface) {
 
 // can使能，设定波特率，并上拉can。这里使用candlelight can，可使用ifconfig -a查看can设备信息
 void initial_can(std::string& can_name){
-    const std::string cmd1 = "sudo ip link set " + can_name + " type can bitrate 1000000";
-    const std::string cmd2 = "sudo ifconfig " + can_name + " up";
-    const std::string cmd3 = "sudo ifconfig " + can_name + " down";
+    const std::string cmd1 = "echo '1234' | sudo -S ip link set " + can_name + " type can bitrate 1000000";
+    const std::string cmd2 = "echo '1234' | sudo -S ifconfig " + can_name + " up";
+    const std::string cmd3 = "echo '1234' | sudo -S ifconfig " + can_name + " down";
     //generate comands for can;
 
     const char* ip_cmd_set_can_params = cmd1.c_str();
@@ -82,7 +82,7 @@ void initial_can(std::string& can_name){
 
 
 void terminate_can(std::string& can_name){
-    const std::string cmd3 = "sudo ifconfig " + can_name + " down";
+    const std::string cmd3 = "echo '1234' | sudo -S ifconfig " + can_name + " down";
     const char* ip_cmd_can_down = cmd3.c_str();
     system(ip_cmd_can_down);
     std::cout << "can0 shutting down." << std::endl;

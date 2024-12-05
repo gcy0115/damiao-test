@@ -110,6 +110,8 @@ int main(){
 
     // 实例化一个dmMotor对象，使用ID和masterID初始化变量 
     dmMotor motorFR{0x102, 0x022};
+
+    // {} 是现代 C++ 编程的推荐方式，因为它可以统一初始化风格并减少歧义。
     enable_motor(sock, motorFR.getID());
 
     // starting receving

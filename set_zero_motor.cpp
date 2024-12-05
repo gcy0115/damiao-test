@@ -19,7 +19,7 @@ int main(){
     }
 
     // 实例化一个dmMotor对象，使用ID和masterID初始化变量 
-    dmMotor motorFR(0x002, 0x502);
+    dmMotor motorFR(0x102, 0x022);
 
     // starting sending
     setzero_motor(sock, motorFR.getID());
